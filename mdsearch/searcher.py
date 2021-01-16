@@ -1,8 +1,9 @@
 import json
+from pprint import pprint
 
 from elasticsearch5 import Elasticsearch
 
-from .Similarity.sentence_similarity import SentenceSimilarity
+from .Similarity.similarity_test import test_similarity
 
 
 class Vividict(dict):
@@ -30,7 +31,6 @@ class Searcher():
         self.es = Elasticsearch([{'host': host, 'port': port}])
         self.index = index_name
         self.doc_type = doc_type
-        self.SS = SentenceSimilarity()
 
     def generate_dsl(self, search_info):
         """Generate DSL given query and search settings
@@ -373,8 +373,8 @@ class Searcher():
                 for v in paper['videoContent']:
                     if 'textEmbedding' in v:
                         v.pop('textEmbedding')
-
-    def get_video_pos(self, query, videoContent, threshold=0.6):
+    @staticmethod
+    def get_video_pos(query, videoContent, threshold=0.6):
         """Return a list of video captions related to user's query
 
         Args:
@@ -387,7 +387,7 @@ class Searcher():
                     captions and query
         """
         emd_list = [v.pop('textEmbedding') for v in videoContent]
-        sim_list = self.get_similarity(query, emd_list)
+        sim_list = test_similarity(query, emd_list)
         if sim_list == '__ERROR__':
             return sim_list
 
@@ -402,17 +402,68 @@ class Searcher():
         # pprint(res_list)
         return res_list
 
-    def get_similarity(self, que_sentence, que_list):
-        '''
-            que_sentence: 查询句子文本
-            que_list: embedding列表
-            result_similarity: 查询句子与que_list以此比较得到的相似度
-        '''
-        result_similarity = []
-        que_embedding = self.SS.get_embedding(que_sentence).tolist()
-        for item in que_list:
-            item_embedding = json.loads(item)
-            item_similarity = 1 - self.SS.similarity(que_embedding, item_embedding)
-            result_similarity.append(item_similarity)
 
-        return result_similarity
+if __name__ == '__main__':
+
+    s = Searcher(index_name='paperdb', doc_type='papers')
+
+    # 综合检索
+    search_info = {
+        'query_type': 'integrated_search',
+        'query': 'pose',
+        'match': {
+            'title': True,
+            'abstract': False,
+            'paperContent': False,
+            'videoContent': False,
+        },
+        'filter': {
+            'yearfrom': 1000,
+            'yearbefore': 3000,
+        },
+        # 'sort': 'relevance',
+        'sort': 'year',
+        'is_filter': True,
+        'is_rescore': True,
+        'is_cited': False
+    }
+    # 高级检索
+    search_info_2 = {
+        'query_type': 'advanced_search',
+        'match': {
+            'title': 'estimating',
+            'abstract': 'RGB',
+            'paperContent': 'pose',
+            'videoContent': 'pixel',
+        },
+        'filter': {
+            'yearfrom': 1000,
+            'yearbefore': 3000,
+        },
+        # 'sort': 'relevance',
+        'sort': 'year',
+        'is_filter': False,
+        'is_rescore': False,
+        'is_cited': False
+    }
+
+    res, paper_id, num = s.search_paper_by_name(search_info)
+    # pprint(res)
+    # pprint(paper_id)
+    # print(num)
+    # exit()
+    print(len(res), len(paper_id), num)
+
+    video_pos = s.get_video_pos_by_paper_id(search_info, paper_id[0])
+    pprint(video_pos)
+
+    # import pdb; pdb.set_trace();
+    # s.remove_text_embedding(res)
+    pprint(res[0].keys())
+    res[0].pop('paperContent')
+    # res[0].pop('references')
+    # res[0].pop('videoContent')
+    pprint(res[0])
+
+    # for e in res:
+        # print(e['year'])
