@@ -1,3 +1,3 @@
-from .mdsearch import Searcher
+from .searcher import Searcher
 
 __all__ = ["Searcher"]
