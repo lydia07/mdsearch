@@ -1,7 +1,9 @@
-from elasticsearch5 import Elasticsearch
-from pprint import pprint
-from .Similarity.sentence_similarity import SentenceSimilarity
 import json
+
+from elasticsearch5 import Elasticsearch
+
+from .Similarity.sentence_similarity import SentenceSimilarity
+
 
 class Vividict(dict):
     def __missing__(self, key):
@@ -414,69 +416,3 @@ class Searcher():
             result_similarity.append(item_similarity)
 
         return result_similarity
-
-
-if __name__ == '__main__':
-
-    s = Searcher(index_name='paperdb', doc_type='papers')
-
-    # 综合检索
-    search_info = {
-        'query_type': 'integrated_search',
-        'query': 'pose',
-        'match': {
-            'title': True,
-            'abstract': False,
-            'paperContent': False,
-            'videoContent': False,
-        },
-        'filter': {
-            'yearfrom': 1000,
-            'yearbefore': 3000,
-        },
-        # 'sort': 'relevance',
-        'sort': 'year',
-        'is_filter': True,
-        'is_rescore': True,
-        'is_cited': False
-    }
-    # 高级检索
-    search_info_2 = {
-        'query_type': 'advanced_search',
-        'match': {
-            'title': 'estimating',
-            'abstract': 'RGB',
-            'paperContent': 'pose',
-            'videoContent': 'pixel',
-        },
-        'filter': {
-            'yearfrom': 1000,
-            'yearbefore': 3000,
-        },
-        # 'sort': 'relevance',
-        'sort': 'year',
-        'is_filter': False,
-        'is_rescore': False,
-        'is_cited': False
-    }
-
-    res, paper_id, num = s.search_paper_by_name(search_info)
-    # pprint(res)
-    # pprint(paper_id)
-    # print(num)
-    # exit()
-    print(len(res), len(paper_id), num)
-
-    video_pos = s.get_video_pos_by_paper_id(search_info, paper_id[0])
-    pprint(video_pos)
-
-    # import pdb; pdb.set_trace();
-    # s.remove_text_embedding(res)
-    pprint(res[0].keys())
-    res[0].pop('paperContent')
-    # res[0].pop('references')
-    # res[0].pop('videoContent')
-    pprint(res[0])
-
-    # for e in res:
-        # print(e['year'])
