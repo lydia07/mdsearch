@@ -5,9 +5,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="mdsearch", # Replace with your own username
-    version="0.0.1",
+    version="0.0.6",
     author="Low-level Maseter Do Search",
-    author_email="3120201103",
+    author_email="3120201103@bit.edu.cn",
     description="mdsearch is a python package for paper search",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -22,5 +22,5 @@ setuptools.setup(
         "Intended Audience :: Developers", 
     ],
     python_requires='>=3.6',
-    install_requires=['elasticsearch5', 'pprint', 'json'],
+    install_requires=['elasticsearch5', 'scipy==1.5.4', 'torch==1.7.1', 'transformers==4.1.1', 'flask==1.1.2'],
 )
